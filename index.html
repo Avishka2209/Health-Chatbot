@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Chatbot</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('/bg.jpg');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #container {
+            width: 800px;
+            height: 600px;
+            background-color: rgba(255, 255, 255, 0.9); /* Increased opacity */
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        #output-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #000080; /* Navy Blue */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #000080; /* Navy Blue */
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5); /* Black shadow */
+            margin-top: 0; /* Adjusted margin to be at the top */
+        }
+
+        #symptom-label {
+            margin-top: 10px;
+            text-align: left;
+            font-weight: bold;
+            color: #888; /* Grey color */
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Disease Prediction Chatbot</h1> <br> 
+        <label for="user-name" align=left>Please enter your name:</label>
+        <input type="text" id="user-name" placeholder="Name">
+        <br>
+        <p id="symptom-label">Enter symptoms ( separated by commas):</p> <!-- Added text above the symptom box -->
+        <input type="text" id="symptom-input" placeholder="Symptoms">
+        <br>
+        <button onclick="sendMessage()">Diagnose</button><br>
+        <div id="output-container"></div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const userName = document.getElementById("user-name").value.trim();
+            if (!userName) {
+                alert("Please enter your name.");
+                return;
+            }
+
+            const symptomInput = document.getElementById("symptom-input").value.trim();
+            if (!symptomInput) {
+                alert("Please enter symptoms.");
+                return;
+            }
+
+            const symptoms = symptomInput.split(',').map(symptom => symptom.trim());
+
+            fetch('/diagnose', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_name: userName,
+                    symptoms: symptoms
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const outputContainer = document.getElementById("output-container");
+                outputContainer.innerHTML = `
+                    <p><strong>Hello ${userName}, here's your diagnosis:</strong></p>
+                    <p><strong>Disease:</strong> ${data.disease_name}</p>
+                    <p><strong>Description:</strong> ${data.description}</p>
+                    <p><strong>Precautions:</strong> ${data.precautions.join(', ')}</p>
+                    ${data.other_possibilities.length > 0 ? `<p><strong>Other Possibilities:</strong> ${data.other_possibilities.join(', ')}</p>` : ''}
+                `;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again later.');
+            });
+        }
+    </script>
+</body>
+</html>
